@@ -1,0 +1,39 @@
+{
+  "categories": [
+      {
+      "id": "external-services",
+      "name": "External Services",
+      "icon": "fa-solid fa-globe",
+      "services": [
+        { "title": "Nextcloud", "url": "https://cloud.example.com/", "icon": "fa-solid fa-cloud" },
+        { "title": "Mail", "url": "https://mail.example.com/", "icon": "fa-solid fa-envelope" }
+      ]
+    },
+    {
+      "id": "user-services",
+      "name": "User Services",
+      "icon": "fa-solid fa-users",
+      "services": [
+        { "title": "Home Assistant", "url": "http://192.168.0.1:8123/", "icon": "fa-solid fa-house-chimney-window" },
+        { "title": "Gitea", "url": "http://192.168.0.1:3000/", "icon": "fa-solid fa-code-branch" },
+        { "title": "Music Assistant", "url": "http://192.168.0.1:8095/", "icon": "fa-solid fa-music" },
+        { "title": "Jellyfin", "url": "http://192.168.0.1:8096/", "icon": "fa-solid fa-film" },
+        { "title": "Komga", "url": "http://192.168.0.1:25600/", "icon": "fa-solid fa-book-open" }
+      ]
+    },
+    {
+      "id": "admin-services",
+      "name": "Admin Services",
+      "icon": "fa-solid fa-terminal",
+      "services": [
+        { "title": "Monitoring", "url": "http://192.168.0.1:8090/monitoring/", "icon": "fa-solid fa-computer" },
+        { "title": "Network", "url": "https://192.168.0.1:8443/", "icon": "fa-solid fa-network-wired" },
+        { "title": "PiHole", "url": "http://192.168.0.2:8081/admin/login.php", "icon": "fa-solid fa-shield-halved" },
+        { "title": "Speedtest", "url": "http://192.168.0.1:8765/", "icon": "fa-solid fa-gauge-high" },
+        { "title": "Swagger", "url": "http://192.168.0.5/swagger/", "icon": "fa-solid fa-code" },
+        { "title": "Router", "url": "https://192.168.0.4/", "icon": "fa-solid fa-wifi" },
+        { "title": "Printer", "url": "http://192.168.0.196/", "icon": "fa-solid fa-print" }
+      ]
+    }
+  ]
+}

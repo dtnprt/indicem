@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">WOPR // COMMAND CENTER</title>
+  
+  <!-- Dynamic Theme CSS Link -->
+  <script>
+    // Load the saved theme as a normal, render-blocking stylesheet, so the first paint
+    // already uses it (no flash of the default theme, no fade-in from an unstyled page).
+    // Theme files follow the css/themes/<id>.css convention used in themes.json.
+    (function () {
+      var id = 'hacker';
+      try {
+        var saved = localStorage.getItem('wopr_theme');
+        if (saved && /^[a-z0-9-]+$/.test(saved)) id = saved;
+      } catch (e) {}
+      document.write('<link id="theme-stylesheet" rel="stylesheet" href="css/themes/' + id + '.css" />');
+    })();
+  </script>
+  <noscript><link rel="stylesheet" href="css/themes/hacker.css" /></noscript>
+  
+  <!-- Local Font Awesome 6.5.1 Icons -->
+  <link rel="stylesheet" href="css/all.min.css" />
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Everything is sized in rem, so this one value scales the whole page:
+       16px up to ~1600px wide screens, growing to 26px on 4K (3840px). */
+    html {
+      font-size: clamp(1rem, 0.554rem + 0.446vw, 1.625rem);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem;
+      background-image: var(--scanlines);
+      background-size: 100% 0.25rem, 0.375rem 100%;
+      transition: background 0.3s ease, color 0.3s ease;
+      position: relative;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 62.5rem;
+      position: relative;
+    }
+
+    /* Large monitors: wider column, room for a 4th tile per row */
+    @media (min-width: 1800px) {
+      .container {
+        max-width: 80rem;
+      }
+    }
+
+    /* Burger Menu & Dropdown Styles */
+    .menu-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .burger-btn {
+      background: var(--mantle);
+      border: 0.0625rem solid var(--border);
+      color: var(--text);
+      width: 2.625rem;
+      height: 2.625rem;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 0.25rem 0.375rem -0.0625rem rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .burger-btn:hover {
+      background: var(--surface);
+      border-color: var(--accent);
+      box-shadow: 0 0 0.625rem var(--glow);
+    }
+
+    .theme-dropdown {
+      position: absolute;
+      top: 3.125rem;
+      right: 0;
+      background: var(--mantle);
+      border: 0.0625rem solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.3rem;
+      box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(0, 0, 0, 0.3);
+      min-width: 12.5rem;
+    }
+
+    .theme-dropdown.show {
+      display: flex;
+    }
+
+    /* Submenu-Struktur */
+    .submenu-container {
+      position: relative;
+    }
+
+    .submenu-trigger {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 0.5rem 0.6rem;
+      font-size: 0.8rem;
+      font-family: var(--font-family);
+      text-align: left;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      transition: all 0.15s;
+    }
+
+    .submenu-trigger:hover {
+      background: var(--surface);
+      color: var(--accent);
+    }
+
+    .submenu {
+      position: absolute;
+      top: 0;
+      right: 102%;
+      background: var(--mantle);
+      border: 0.0625rem solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.3rem;
+      box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(0, 0, 0, 0.3);
+      min-width: 13.125rem;
+      z-index: 101;
+    }
+
+    .submenu-container:hover .submenu {
+      display: flex;
+    }
+
+    .menu-item-btn, .theme-btn, .category-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 0.4rem 0.6rem;
+      font-size: 0.8rem;
+      font-family: var(--font-family);
+      text-align: left;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .theme-btn:hover, .theme-btn.active, .category-toggle-btn:hover, .menu-item-btn:hover {
+      background: var(--surface);
+      color: var(--accent);
+    }
+
+    .category-toggle-btn i {
+      width: 1rem;
+      text-align: center;
+      color: var(--accent);
+    }
+
+    .reset-btn {
+      color: var(--warning, #ff3366) !important;
+    }
+
+    .reset-btn:hover {
+      background: color-mix(in srgb, var(--warning, #ff3366) 12%, var(--mantle)) !important;
+    }
+
+    .terminal-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      margin-top: 1rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 0.625rem var(--glow), 0 0 1.25rem var(--glow);
+      text-transform: uppercase;
+    }
+
+    .terminal-subtitle {
+      font-size: 0.8rem;
+      color: var(--subtext);
+      margin-top: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .terminal-subtitle::before {
+      content: "> ";
+      color: var(--accent);
+    }
+
+    /* Section Header Styling */
+    .section-header {
+      display: flex;
+      align-items: center;
+      border-bottom: 0.0625rem dashed var(--border);
+      padding-bottom: 0.5rem;
+      margin: 2rem 0 1.25rem 0;
+    }
+
+    .section-header.hidden {
+      display: none;
+    }
+
+    .section-header:first-of-type {
+      margin-top: 0.5rem;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-grow: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(16.25rem, 1fr));
+      gap: 1.25rem;
+      list-style: none;
+    }
+
+    .grid.hidden {
+      display: none;
+    }
+
+    .card-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .card {
+      --card-glow: color-mix(in srgb, var(--card-color, var(--accent)) 40%, transparent);
+      background-color: var(--mantle);
+      border: 0.0625rem solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.2s ease-in-out;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0.25rem 0.375rem -0.0625rem rgba(0, 0, 0, 0.05);
+    }
+
+    .card:hover {
+      background-color: var(--surface);
+      border-color: var(--card-color, var(--accent));
+      box-shadow: 0 0.375rem 0.9375rem -0.1875rem var(--card-glow);
+    }
+
+    .icon-wrapper {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.5rem;
+      background-color: var(--surface);
+      border: 0.0625rem solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: var(--card-color, var(--accent));
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .card:hover .icon-wrapper {
+      background-color: var(--mantle);
+      box-shadow: 0 0 0.5rem var(--card-color, var(--accent));
+    }
+
+    .card-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      justify-content: center;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Apply the theme class before first paint (theme CSS targets body.theme-<id>)
+    try {
+      var earlyTheme = localStorage.getItem('wopr_theme') || 'hacker';
+      if (/^[a-z0-9-]+$/.test(earlyTheme)) document.body.className = 'theme-' + earlyTheme;
+    } catch (e) {}
+  </script>
+
+  <div class="container">
+    <!-- Burger Menu & Submenüs -->
+    <div class="menu-container">
+      <button class="burger-btn" onclick="toggleMenu()" title="Settings">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div id="themeDropdown" class="theme-dropdown"></div>
+    </div>
+
+    <div class="terminal-header">
+      <h1 id="main-header">LOADING...</h1>
+      <div class="terminal-subtitle" id="main-subtitle">STATUS: INITIALIZING...</div>
+    </div>
+    
+    <div id="dashboard-content"></div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const dropdown = document.getElementById('themeDropdown');
+      dropdown.classList.toggle('show');
+    }
+
+    window.addEventListener('click', function(e) {
+      if (!e.target.closest('.menu-container')) {
+        document.getElementById('themeDropdown').classList.remove('show');
+      }
+    });
+
+    function updateTextFromCSS() {
+      const computedStyle = getComputedStyle(document.documentElement);
+      const siteTitle = computedStyle.getPropertyValue('--site-title').trim().replace(/^["']|["']$/g, '');
+      const siteSubtitle = computedStyle.getPropertyValue('--site-subtitle').trim().replace(/^["']|["']$/g, '');
+
+      if (siteTitle) {
+        document.getElementById('main-header').textContent = siteTitle;
+        document.getElementById('page-title').textContent = siteTitle;
+      }
+      if (siteSubtitle) {
+        document.getElementById('main-subtitle').textContent = siteSubtitle;
+      }
+    }
+
+    function getCategoryTitle(category) {
+      const computedStyle = getComputedStyle(document.documentElement);
+      let cssCatTitle = "";
+      if (category.id) {
+        const rawVar = computedStyle.getPropertyValue(`--cat-${category.id}-title`).trim();
+        cssCatTitle = rawVar.replace(/^["']|["']$/g, '');
+      }
+      return cssCatTitle || category.name || category.title || "KATEGORIE";
+    }
+
+    async function loadMenuAndDashboard() {
+      try {
+        const [themeRes, serviceRes] = await Promise.all([
+          fetch('themes.json'),
+          fetch('services.json')
+        ]);
+        
+        const themeData = await themeRes.json();
+        const serviceData = await serviceRes.json();
+
+        const dropdown = document.getElementById('themeDropdown');
+        dropdown.innerHTML = '';
+
+        const savedTheme = localStorage.getItem('wopr_theme') || 'hacker';
+        let activeThemeFile = 'css/themes/hacker.css';
+
+        themeData.themes.forEach(theme => {
+          if (savedTheme === theme.id) {
+            activeThemeFile = theme.file;
+          }
+        });
+
+        applyTheme(savedTheme, activeThemeFile);
+
+        // --- Haupt-Untermenü: Themes ---
+        const themeSubContainer = document.createElement('div');
+        themeSubContainer.className = 'submenu-container';
+        
+        const themeTrigger = document.createElement('button');
+        themeTrigger.className = 'submenu-trigger';
+        themeTrigger.innerHTML = `<span><i class="fa-solid fa-palette" style="width:1.25rem"></i> Themes</span> <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i>`;
+        themeSubContainer.appendChild(themeTrigger);
+
+        const themeSubmenu = document.createElement('div');
+        themeSubmenu.className = 'submenu';
+
+        themeData.themes.forEach(theme => {
+          if (theme.enabled) {
+            const btn = document.createElement('button');
+            btn.className = `theme-btn ${savedTheme === theme.id ? 'active' : ''}`;
+            btn.innerHTML = `<i class="${theme.icon}" style="width:1.25rem"></i> ${theme.name}`;
+            btn.onclick = () => {
+              switchTheme(theme.id, theme.file);
+            };
+            themeSubmenu.appendChild(btn);
+          }
+        });
+        themeSubContainer.appendChild(themeSubmenu);
+        dropdown.appendChild(themeSubContainer);
+
+        // --- Haupt-Untermenü: View ---
+        if (serviceData.categories && Array.isArray(serviceData.categories)) {
+          const catSubContainer = document.createElement('div');
+          catSubContainer.className = 'submenu-container';
+
+          const catTrigger = document.createElement('button');
+          catTrigger.className = 'submenu-trigger';
+          catTrigger.innerHTML = `<span><i class="fa-solid fa-eye" style="width:1.25rem"></i> View</span> <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i>`;
+          catSubContainer.appendChild(catTrigger);
+
+          const catSubmenu = document.createElement('div');
+          catSubmenu.className = 'submenu';
+
+          const hiddenCategories = getHiddenCategoriesState();
+
+          serviceData.categories.forEach(category => {
+            const catId = category.id;
+            const isHidden = hiddenCategories[catId] === true;
+            // The View menu always uses the plain name from services.json, not the theme's title override
+            const finalCatTitle = category.name || category.title || catId;
+
+            const catBtn = document.createElement('button');
+            catBtn.className = 'category-toggle-btn';
+            catBtn.innerHTML = `
+              <i class="fa-solid ${isHidden ? 'fa-eye-slash' : 'fa-eye'}"></i>
+              <span>${finalCatTitle}</span>
+            `;
+            catBtn.onclick = (e) => {
+              e.stopPropagation();
+              toggleCategoryVisibility(catId);
+            };
+            catSubmenu.appendChild(catBtn);
+          });
+
+          catSubContainer.appendChild(catSubmenu);
+          dropdown.appendChild(catSubContainer);
+        }
+
+        // --- Haupt-Untermenü: Tools ---
+        const otherSubContainer = document.createElement('div');
+        otherSubContainer.className = 'submenu-container';
+
+        const otherTrigger = document.createElement('button');
+        otherTrigger.className = 'submenu-trigger';
+        otherTrigger.innerHTML = `<span><i class="fa-solid fa-gear" style="width:1.25rem"></i> Tools</span> <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i>`;
+        otherSubContainer.appendChild(otherTrigger);
+
+        const otherSubmenu = document.createElement('div');
+        otherSubmenu.className = 'submenu';
+
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'menu-item-btn reset-btn';
+        resetBtn.innerHTML = `<i class="fa-solid fa-trash-can" style="width:1.25rem"></i> Reset Cache & Cookies`;
+        resetBtn.onclick = () => {
+          if (confirm('Möchtest du alle Einstellungen, Cookies und den LocalStorage wirklich zurücksetzen?')) {
+            clearAllStorageData();
+          }
+        };
+        otherSubmenu.appendChild(resetBtn);
+
+        otherSubContainer.appendChild(otherSubmenu);
+        dropdown.appendChild(otherSubContainer);
+
+        renderDashboard(serviceData);
+
+      } catch (error) {
+        console.error('Fehler beim Laden der Konfigurationen:', error);
+      }
+    }
+
+    function switchTheme(themeId, filePath) {
+      applyTheme(themeId, filePath);
+      localStorage.setItem('wopr_theme', themeId);
+      loadMenuAndDashboard();
+    }
+
+    function applyTheme(themeId, filePath) {
+      const stylesheet = document.getElementById('theme-stylesheet');
+      // Read titles once the theme CSS has actually loaded (font imports can be slow)
+      // and re-render once, so category titles from CSS are applied too.
+      stylesheet.onload = () => {
+        if (stylesheet.dataset.loadedFor === filePath) return;
+        stylesheet.dataset.loadedFor = filePath;
+        loadMenuAndDashboard();
+      };
+      if (!stylesheet.href.endsWith(filePath)) {
+        stylesheet.href = filePath;
+      }
+      document.body.className = `theme-${themeId}`;
+      setTimeout(updateTextFromCSS, 50);
+    }
+
+    function getHiddenCategoriesState() {
+      try {
+        return JSON.parse(localStorage.getItem('wopr_hidden_categories')) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveHiddenCategoriesState(state) {
+      localStorage.setItem('wopr_hidden_categories', JSON.stringify(state));
+    }
+
+    function toggleCategoryVisibility(catId) {
+      const hiddenState = getHiddenCategoriesState();
+      hiddenState[catId] = !hiddenState[catId];
+      saveHiddenCategoriesState(hiddenState);
+      loadMenuAndDashboard();
+    }
+
+    function clearAllStorageData() {
+      localStorage.clear();
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
+      });
+      window.location.reload();
+    }
+
+    // Picks a palette slot (0-15) from the service title. The palette colors
+    // themselves come from the active theme CSS (--palette-0 ... --palette-15).
+    const PALETTE_SIZE = 16;
+
+    function hashString(str) {
+      // FNV-1a 32-bit
+      let h = 0x811c9dc5;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+      }
+      return h >>> 0;
+    }
+
+    function assignPaletteSlots(categories) {
+      // Each title gets its hashed slot. If another tile already has that slot,
+      // it takes the next free one, so up to 16 tiles all get different colors.
+      // A tile can pick a slot directly with "colorIndex": 0-15 in services.json.
+      const slots = new Map();
+      const used = new Set();
+      const all = categories.flatMap(c => c.services || []);
+
+      all.forEach(s => {
+        if (Number.isInteger(s.colorIndex)) {
+          const idx = ((s.colorIndex % PALETTE_SIZE) + PALETTE_SIZE) % PALETTE_SIZE;
+          slots.set(s, idx);
+          used.add(idx);
+        }
+      });
+
+      all.forEach(s => {
+        if (slots.has(s)) return;
+        let idx = hashString((s.title || '').toLowerCase()) % PALETTE_SIZE;
+        if (used.size < PALETTE_SIZE) {
+          while (used.has(idx)) idx = (idx + 1) % PALETTE_SIZE;
+        }
+        slots.set(s, idx);
+        used.add(idx);
+      });
+
+      return slots;
+    }
+
+    function renderDashboard(data) {
+      const container = document.getElementById('dashboard-content');
+      container.innerHTML = '';
+
+      const hiddenState = getHiddenCategoriesState();
+      const paletteSlots = assignPaletteSlots(data.categories);
+
+      data.categories.forEach(category => {
+        const catId = category.id;
+        const finalCategoryTitle = getCategoryTitle(category);
+        const isHidden = hiddenState[catId] === true;
+
+        // Header Container (nur noch Titel & Icon, ohne Collapse-Button)
+        const headerDiv = document.createElement('div');
+        headerDiv.className = `section-header ${isHidden ? 'hidden' : ''}`;
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'section-title';
+        titleDiv.innerHTML = `<i class="${category.icon || 'fa-solid fa-folder'}"></i> ${finalCategoryTitle}`;
+
+        headerDiv.appendChild(titleDiv);
+        container.appendChild(headerDiv);
+
+        // Grid Container
+        const ul = document.createElement('ul');
+        ul.className = `grid ${isHidden ? 'hidden' : ''}`;
+
+        if (category.services && Array.isArray(category.services)) {
+          category.services.forEach(service => {
+            const li = document.createElement('li');
+            const colorStyle = `--card-color: var(--palette-${paletteSlots.get(service)}, var(--accent));`;
+            li.innerHTML = `
+              <a href="${service.url}" class="card-link">
+                <div class="card" style="${colorStyle}">
+                  <div class="icon-wrapper"><i class="${service.icon}"></i></div>
+                  <div class="card-info">
+                    <span class="card-title">${service.title}</span>
+                  </div>
+                </div>
+              </a>
+            `;
+            ul.appendChild(li);
+          });
+        }
+
+        container.appendChild(ul);
+      });
+
+      setTimeout(updateTextFromCSS, 100);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMenuAndDashboard();
+    });
+  </script>
+
+</body>
+</html>

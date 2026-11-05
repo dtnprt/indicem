@@ -1,0 +1,60 @@
+{
+  "themes": [
+    {
+      "id": "hacker",
+      "name": "Hacker",
+      "file": "css/themes/hacker.css",
+      "icon": "fa-solid fa-terminal",
+      "enabled": true
+    },
+    {
+      "id": "light",
+      "name": "Light",
+      "file": "css/themes/light.css",
+      "icon": "fa-solid fa-sun",
+      "enabled": true
+    },
+    {
+      "id": "lavender",
+      "name": "Lavender",
+      "file": "css/themes/lavender.css",
+      "icon": "fa-solid fa-seedling",
+      "enabled": true
+    },
+    {
+      "id": "mario",
+      "name": "Mario",
+      "file": "css/themes/mario.css",
+      "icon": "fa-solid fa-gamepad",
+      "enabled": true
+    },
+    {
+      "id": "space",
+      "name": "Space",
+      "file": "css/themes/space.css",
+      "icon": "fa-solid fa-rocket",
+      "enabled": true
+    },
+    {
+      "id": "zelda",
+      "name": "Zelda BotW",
+      "file": "css/themes/zelda.css",
+      "icon": "fa-solid fa-feather-pointed",
+      "enabled": true
+    },
+    {
+      "id": "lcars",
+      "name": "LCARS",
+      "file": "css/themes/lcars.css",
+      "icon": "fa-solid fa-satellite",
+      "enabled": true
+    },
+    {
+      "id": "manuscript",
+      "name": "Manuscript",
+      "file": "css/themes/manuscript.css",
+      "icon": "fa-solid fa-scroll",
+      "enabled": true
+    }
+  ]
+}
